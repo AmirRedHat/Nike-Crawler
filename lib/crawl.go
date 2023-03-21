@@ -1,45 +1,48 @@
 package lib
 
 import (
-	// "net/http"
 	"fmt"
 	"log"
 	"strings"
-
+	"io/ioutil"
+	"encoding/json"
 	"github.com/gocolly/colly"
 )
 
-func Crawl(url string) {
-	
-	type NikeProduct struct {
-		Title 					string 
-		Category 				string
-		Price 					string
-		DiscountedPrice 		string
-		Colors 					[]string
-	}
+type NikeProduct struct {
+	Title 					string 
+	Category 				string
+	Price 					string
+	DiscountedPrice 		string
+	Colors 					[]string
+	Images					[]string
+}
+
+func Crawl(url string) NikeProduct {
 
 	crawler := colly.NewCollector()
-	nikeProduct := NikeProduct{}
+
+	var title, category, price, discounted_price string
+	var colors, images []string
 
 	crawler.OnHTML("h1#pdp_product_title", func(element *colly.HTMLElement) {
-		nikeProduct.Title = element.Text
+		title = element.Text
 	})
 
 	crawler.OnHTML("h2.headline-5", func(element *colly.HTMLElement) {
-		nikeProduct.Category = element.Text
+		category = element.Text
 	})
 	
 	crawler.OnHTML("div.product-price__wrapper", func(element *colly.HTMLElement) {
 		
 		childNodes := element.DOM.Children().Nodes
 		if len(childNodes) == 2 {
-			nikeProduct.Price = element.DOM.FindNodes(childNodes[0]).Text()
-			discounted_price := element.DOM.FindNodes(childNodes[1]).Text()
-			nikeProduct.DiscountedPrice = strings.Replace(discounted_price, "Discounted from", "", 1)
+			price = element.DOM.FindNodes(childNodes[0]).Text()
+			discounted_price = element.DOM.FindNodes(childNodes[1]).Text()
+			discounted_price = strings.Replace(discounted_price, "Discounted from", "", 1)
 		} else {
-			nikeProduct.Price = element.DOM.FindNodes(childNodes[0]).Text()
-			nikeProduct.DiscountedPrice = "0"
+			price = element.DOM.FindNodes(childNodes[0]).Text()
+			discounted_price = "$0"
 		}
 	})
 
@@ -48,34 +51,39 @@ func Crawl(url string) {
 		if !is_exist {
 			log.Fatal("is not exist")
 		}
-		nikeProduct.Colors = append(nikeProduct.Colors, src)
+		colors = append(colors, src)
 	})
 
-	crawler.OnHTML("div#pdp-6-up button", func(element *colly.HTMLElement) {
+	crawler.OnHTML("div#pdp-6-up div.css-du206p", func(element *colly.HTMLElement) {
 		pics := element.DOM.Find("picture")
-		picNodes := pics.Nodes
-		if len(picNodes) == 2 {
-			src, is_exist := element.DOM.FindNodes(picNodes[1]).Attr("src")
+		if len(pics.Nodes) == 2 {
+			src, is_exist := element.DOM.FindNodes(pics.Nodes[1]).Find("img").Attr("src")
 			if !is_exist {
-				fmt.Println("is not exist")
+				log.Fatal("is not exist")
 			}
-			fmt.Println(src)
+			images = append(images, src)
 		}
 	})
 
 	crawler.Visit(url)
+	
+	nikeProduct := NikeProduct{}
+	nikeProduct.Title 				= title
+	nikeProduct.Category 			= category
+	nikeProduct.Price 				= price
+	nikeProduct.DiscountedPrice 	= discounted_price
+	nikeProduct.Colors 				= colors
+	nikeProduct.Images 				= images
+
+	return nikeProduct
 
 }
 
-func UrlProcessing(url string) map[string]interface{} {
-	var urlArray []string 
-	
-	urlArray = strings.Split(url, "/")[4:]
-	urlArray = urlArray[:len(urlArray)-1]
-	firstElementSplited := strings.Split(urlArray[0], "-")
-	category := firstElementSplited[len(firstElementSplited)-2]
-	fmt.Println("category: ", category)
-
-	data := make(map[string]interface{}, 0)
-	return data
+func ToCSV(nikeProduct NikeProduct, fileName string) { 
+	jsonData, err := json.MarshalIndent([]NikeProduct{nikeProduct}, "", "")
+	if err != nil {
+		log.Fatal("unable to save this product")
+	}
+	ioutil.WriteFile(fileName, jsonData, 0644)
+	fmt.Println("file saved!")
 }

@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	lib.Crawl("https://www.nike.com/t/air-jordan-1-elevate-low-se-womens-shoes-Q630Pk/FD1028-100")
+	product := lib.Crawl("https://www.nike.com/t/air-max-plus-mens-shoes-x9G2xF/604133-139")
+	lib.ToCSV(product, "./nike_product.json")
 }
