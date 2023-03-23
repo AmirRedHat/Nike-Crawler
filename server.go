@@ -27,6 +27,9 @@ func Server() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
+	// use middlewares
+	router.Use(CheckLatency())
+
 	router.POST("/nike", NikeProductHandler)
 
 	router.Run("0.0.0.0:8080")
@@ -37,6 +40,7 @@ func NikeProductHandler(context *gin.Context) {
 	data := returnData(context.Request.Body)
 
 	nikeURL := data["url"].(string)
+	fmt.Println("Crawling ", nikeURL)
 	product := lib.Crawl(nikeURL)
 
 	context.JSON(200, product)
