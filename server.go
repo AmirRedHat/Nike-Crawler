@@ -23,6 +23,9 @@ func returnData(dataBytes io.Reader) map[string]interface{} {
 }
 
 func Server() {
+
+	// lib.TestNike()
+
 	fmt.Println("server is running")
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
@@ -35,6 +38,8 @@ func Server() {
 	router.Run("0.0.0.0:8080")
 
 }
+
+// views
 
 func NikeProductHandler(context *gin.Context) {
 	data := returnData(context.Request.Body)
