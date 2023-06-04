@@ -27,30 +27,6 @@ func Crawl(url string) NikeProduct {
 	var title, category, price, discounted_price string
 	var colors, images, sizes []string
 
-	// // fetching title 
-	// crawler.OnHTML("h1#pdp_product_title", func(element *colly.HTMLElement) {
-	// 	title = element.Text
-	// })
-
-	// // fetching category
-	// crawler.OnHTML("h2.headline-5", func(element *colly.HTMLElement) {
-	// 	category = element.Text
-	// })
-	
-	// // fetching price
-	// crawler.OnHTML("div.product-price__wrapper", func(element *colly.HTMLElement) {
-		
-	// 	childNodes := element.DOM.Children().Nodes
-	// 	if len(childNodes) == 2 {
-	// 		price = element.DOM.FindNodes(childNodes[0]).Text()
-	// 		discounted_price = element.DOM.FindNodes(childNodes[1]).Text()
-	// 		discounted_price = strings.Replace(discounted_price, "Discounted from", "", 1)
-	// 	} else {
-	// 		price = element.DOM.FindNodes(childNodes[0]).Text()
-	// 		discounted_price = "$0"
-	// 	}
-	// })
-
 	// fetching colors
 	crawler.OnHTML("div.colorway-container", func(element *colly.HTMLElement) {
 		src, is_exist := element.DOM.Find("img").Attr("src")
